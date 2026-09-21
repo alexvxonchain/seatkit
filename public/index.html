@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SEATKIT · pump.fun operator seat</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">SEATKIT</div>
+        <div class="sub">self-hosted seat · pump.fun trench · @Alexvx_nft</div>
+      </div>
+      <div class="pills">
+        <span class="pill paper">PAPER</span>
+        <span class="pill">NO KEYS</span>
+        <span class="pill live">LIVE SIM</span>
+      </div>
+      <div class="stats" id="stats"></div>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="seat" class="on">SEAT</button>
+      <button data-tab="wallets">WALLETS</button>
+      <button data-tab="launch">LAUNCH</button>
+      <button data-tab="trade">TRADE</button>
+      <button data-tab="logs">LOGS</button>
+    </nav>
+
+    <main>
+      <section id="tab-seat" class="panel on">
+        <div class="grid-seat">
+          <div class="king card">
+            <div class="label">CURRENT SEAT · pump.fun</div>
+            <div class="king-name" id="kingName">—</div>
+            <div class="king-meta" id="kingMeta"></div>
+            <div class="bar"><i id="fillBar"></i></div>
+            <div class="hint">window 62–91% · earlier is noise</div>
+          </div>
+          <div class="climbers card">
+            <div class="label">CLIMB · filling under the king</div>
+            <div id="climbList"></div>
+          </div>
+          <div class="fall card">
+            <div class="label">FALL · flip risk</div>
+            <canvas id="fallChart" width="600" height="180"></canvas>
+            <div class="hint" id="fallHint">watching pressure</div>
+          </div>
+          <div class="route card">
+            <div class="label">ROUTE MAP</div>
+            <div class="route-rows">
+              <div><b>1</b> track seat on pump.fun curve</div>
+              <div><b>2</b> size paper buys across wallet lane</div>
+              <div><b>3</b> exit on FALL before CT screenshot</div>
+              <div><b>4</b> optional live: your RPC + your keys</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-wallets" class="panel">
+        <div class="card">
+          <div class="label">WALLET LANES · paper cluster</div>
+          <table class="table" id="walletTable">
+            <thead><tr><th>lane</th><th>label</th><th>SOL</th><th>buy %</th><th>status</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-launch" class="panel">
+        <div class="card launch">
+          <div class="label">TOKEN TEMPLATE · paper only</div>
+          <div class="form">
+            <label>name <input value="RIDGE" readonly /></label>
+            <label>ticker <input value="RIDGE" readonly /></label>
+            <label>dev buy <input value="0.35 SOL" readonly /></label>
+            <label>meta <input value="paper hill desk narrative" readonly /></label>
+          </div>
+          <button class="btn" id="btnLaunch">SIM LAUNCH (PAPER)</button>
+          <p class="warn">Default mode never signs. Wire live only with your own .env + wallets.</p>
+        </div>
+      </section>
+
+      <section id="tab-trade" class="panel">
+        <div class="trade-grid">
+          <div class="card">
+            <div class="label">BATCH BUY · paper</div>
+            <div class="big" id="tradeSeat">—</div>
+            <div class="form row">
+              <label>amount <input value="0.05 SOL" readonly /></label>
+              <label>slippage <input value="12%" readonly /></label>
+            </div>
+            <button class="btn" id="btnBuy">SIM BUY SELECTED</button>
+          </div>
+          <div class="card">
+            <div class="label">BATCH SELL · paper</div>
+            <div class="form row">
+              <label>sell % <input value="100%" readonly /></label>
+              <label>priority <input value="auto" readonly /></label>
+            </div>
+            <button class="btn ghost" id="btnSell">SIM SELL SELECTED</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-logs" class="panel">
+        <div class="card logs">
+          <div class="label">MISSION LOG · SSE</div>
+          <pre id="logBox"></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div>github.com/alexvxonchain/seatkit</div>
+      <div>npm start → localhost:3847 · PAPER first</div>
+      <div id="clock"></div>
+    </footer>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

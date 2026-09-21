@@ -1,0 +1,10 @@
+node_modules/
+.env
+wallets/
+data/
+*.log
+.DS_Store
+assets/ref_preview.mp4
+assets/ref1.png
+assets/ref2.png
+_rec/
