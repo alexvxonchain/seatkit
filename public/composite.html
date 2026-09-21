@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SEATKIT · composite</title>
+  <style>
+    html, body {
+      margin: 0; width: 1080px; height: 1350px; overflow: hidden;
+      background: #050403; color: #ffb84a;
+      font-family: Consolas, "Segoe UI", monospace;
+    }
+    #wrap {
+      width: 1080px; height: 1350px; position: relative;
+      display: grid;
+      grid-template-rows: 1fr 420px;
+    }
+    #uiFrame {
+      width: 1080px; height: 930px; border: 0; display: block;
+      background: #070605;
+    }
+    #bottom {
+      position: relative;
+      height: 420px;
+      border-top: 1px solid rgba(255,184,74,0.45);
+      overflow: hidden;
+    }
+    #c {
+      position: absolute; inset: 0;
+      width: 1080px; height: 420px; display: block;
+    }
+    #caption {
+      position: absolute; left: 18px; right: 18px; bottom: 14px; z-index: 3;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      pointer-events: none;
+    }
+    #caption .big {
+      font-size: 28px; font-weight: 800; color: #ffc45c;
+      text-shadow: 0 0 16px rgba(255,170,60,0.4);
+    }
+    #caption .sub { font-size: 13px; color: #c9a06a; margin-top: 4px; }
+    #caption .right { text-align: right; font-size: 12px; color: #c9a06a; }
+    #badge {
+      position: absolute; top: 12px; left: 14px; z-index: 3;
+      background: rgba(5,4,3,0.75); border: 1px solid rgba(255,184,74,0.45);
+      padding: 6px 10px; font-size: 11px; letter-spacing: 0.6px;
+    }
+  </style>
+  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.170.0/build/three.module.js" } }</script>
+</head>
+<body>
+  <div id="wrap">
+    <iframe id="uiFrame" src="/?demo=1" title="SEATKIT"></iframe>
+    <div id="bottom">
+      <div id="badge">3D SEAT FIELD · LIVE</div>
+      <canvas id="c"></canvas>
+      <div id="caption">
+        <div>
+          <div class="big" id="line">npm start → YOUR SEAT</div>
+          <div class="sub" id="sub">paper desk on pump.fun trench</div>
+        </div>
+        <div class="right">
+          <div>github.com/alexvxonchain/seatkit</div>
+          <div id="tick">T+0.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    const DUR = 18;
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(1);
+    renderer.setSize(1080, 420, false);
+    renderer.setClearColor(0x050403, 1);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, 1080 / 420, 0.1, 100);
+    camera.position.set(0, 1.1, 4.6);
+
+    const grid = new THREE.GridHelper(14, 24, 0x3a2810, 0x151008);
+    grid.position.y = -0.85;
+    scene.add(grid);
+
+    const N = 2800;
+    const pos = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    const base = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const h = Math.random();
+      const rad = (1 - h) * (1.35 + Math.random() * 0.4);
+      const a = Math.random() * Math.PI * 2;
+      const x = Math.cos(a) * rad;
+      const z = Math.sin(a) * rad;
+      const y = h * 1.7 - 0.7;
+      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+      base[i * 3] = x; base[i * 3 + 1] = y; base[i * 3 + 2] = z;
+      col[i * 3] = 0.9; col[i * 3 + 1] = 0.5 + h * 0.35; col[i * 3 + 2] = 0.15;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const cloud = new THREE.Points(geo, new THREE.PointsMaterial({
+      size: 0.03, vertexColors: true, transparent: true, opacity: 0.95, sizeAttenuation: true,
+    }));
+    scene.add(cloud);
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.7, 0.012, 8, 100),
+      new THREE.MeshBasicMaterial({ color: 0x55d4ff, transparent: true, opacity: 0.8 })
+    );
+    ring.rotation.x = Math.PI / 2.2;
+    ring.position.y = -0.15;
+    scene.add(ring);
+
+    const ring2 = new THREE.Mesh(
+      new THREE.TorusGeometry(1.15, 0.01, 8, 80),
+      new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.7 })
+    );
+    ring2.rotation.x = Math.PI / 2.5;
+    ring2.position.y = 0.35;
+    scene.add(ring2);
+
+    // floating chips
+    const chips = [];
+    const labels = ['SEAT', 'CLIMB', 'FALL', 'PAPER', 'npm'];
+    labels.forEach((text, i) => {
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 64;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(8, 10, 240, 44);
+      ctx.strokeStyle = '#ffb84a';
+      ctx.strokeRect(8, 10, 240, 44);
+      ctx.fillStyle = '#ffb84a';
+      ctx.font = 'bold 28px Consolas';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 32);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(cv), transparent: true, depthTest: false,
+      }));
+      sp.scale.set(0.95, 0.24, 1);
+      scene.add(sp);
+      chips.push({ sp, phase: (i / labels.length) * Math.PI * 2 });
+    });
+
+    const lines = [
+      ['npm start → YOUR SEAT', 'paper desk on pump.fun trench'],
+      ['REAL TERMINAL UP TOP', '3D seat field below'],
+      ['NO KEYS IN THE REPO', 'learn the loop in paper first'],
+      ['SELF-HOSTED OPERATOR SEAT', 'github.com/alexvxonchain/seatkit'],
+    ];
+
+    window.__RADIX__ = { t: 0, ready: false, DUR };
+    let start = performance.now();
+    let recording = false;
+
+    function renderAt(t) {
+      window.__RADIX__.t = t;
+      cloud.rotation.y = t * 0.35;
+      ring.rotation.z = -t * 0.4;
+      ring2.rotation.z = t * 0.55;
+
+      const arr = geo.attributes.position.array;
+      for (let i = 0; i < N; i++) {
+        const s = 1 + 0.035 * Math.sin(t * 2.2 + i * 0.01);
+        arr[i * 3] = base[i * 3] * s;
+        arr[i * 3 + 1] = base[i * 3 + 1] + Math.sin(t * 1.6 + i * 0.002) * 0.025;
+        arr[i * 3 + 2] = base[i * 3 + 2] * s;
+      }
+      geo.attributes.position.needsUpdate = true;
+
+      chips.forEach(({ sp, phase }) => {
+        const a = phase + t * 0.7;
+        sp.position.set(Math.cos(a) * 2.0, Math.sin(a * 1.4) * 0.35 + 0.15, Math.sin(a) * 2.0);
+      });
+
+      camera.position.x = Math.sin(t * 0.3) * 0.55;
+      camera.position.y = 1.05 + Math.sin(t * 0.25) * 0.12;
+      camera.lookAt(0, 0.1, 0);
+
+      const li = Math.min(lines.length - 1, Math.floor(t / (DUR / lines.length)));
+      document.getElementById('line').textContent = lines[li][0];
+      document.getElementById('sub').textContent = lines[li][1];
+      document.getElementById('tick').textContent = `T+${t.toFixed(1)}`;
+
+      renderer.render(scene, camera);
+    }
+
+    window.__setTime = (tt) => { recording = true; renderAt(tt); };
+    window.__RADIX_RESTART__ = () => {
+      recording = false;
+      start = performance.now();
+      renderAt(0);
+      try {
+        const f = document.getElementById('uiFrame');
+        f.src = '/?demo=1&r=' + Date.now();
+      } catch {}
+    };
+
+    function frame(now) {
+      if (recording) return;
+      renderAt(Math.min(DUR, (now - start) / 1000));
+      requestAnimationFrame(frame);
+    }
+
+    // wait iframe + webgl
+    requestAnimationFrame(() => {
+      window.__RADIX__.ready = true;
+      start = performance.now();
+      renderAt(0);
+      requestAnimationFrame(frame);
+    });
+  </script>
+</body>
+</html>

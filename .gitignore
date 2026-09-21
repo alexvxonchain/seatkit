@@ -7,4 +7,10 @@ data/
 assets/ref_preview.mp4
 assets/ref1.png
 assets/ref2.png
+assets/music/
 _rec/
+_rec3d/
+_rec_comp/
+record.mjs
+record_cinematic.mjs
+record_composite.mjs
