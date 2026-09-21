@@ -77,82 +77,135 @@
     renderer.setClearColor(0x050403, 1);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, 1080 / 420, 0.1, 100);
-    camera.position.set(0, 1.1, 4.6);
+    const camera = new THREE.PerspectiveCamera(38, 1080 / 420, 0.1, 100);
+    camera.position.set(0, 0.15, 5.2);
 
-    const grid = new THREE.GridHelper(14, 24, 0x3a2810, 0x151008);
-    grid.position.y = -0.85;
-    scene.add(grid);
+    // soft floor haze (no Christmas-tree cone)
+    const hazeGeo = new THREE.PlaneGeometry(16, 8, 1, 1);
+    const haze = new THREE.Mesh(
+      hazeGeo,
+      new THREE.MeshBasicMaterial({ color: 0x120c06, transparent: true, opacity: 0.55 })
+    );
+    haze.rotation.x = -Math.PI / 2;
+    haze.position.y = -1.05;
+    scene.add(haze);
 
-    const N = 2800;
+    // Lemniscate of Bernoulli (∞) — parametric
+    // x = a√2 cos(t) / (sin²(t)+1)
+    // y = a√2 cos(t)sin(t) / (sin²(t)+1)
+    function infinityPoint(u, a = 1.85) {
+      const s = Math.sin(u);
+      const c = Math.cos(u);
+      const d = s * s + 1;
+      const x = (a * Math.SQRT2 * c) / d;
+      const y = (a * Math.SQRT2 * c * s) / d;
+      return { x, y };
+    }
+
+    // ribbon tube along ∞
+    const tubePts = [];
+    for (let i = 0; i <= 240; i++) {
+      const u = (i / 240) * Math.PI * 2;
+      const p = infinityPoint(u);
+      tubePts.push(new THREE.Vector3(p.x, p.y * 0.85, Math.sin(u * 2) * 0.12));
+    }
+    const curve = new THREE.CatmullRomCurve3(tubePts, true);
+    const tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 240, 0.035, 10, true),
+      new THREE.MeshBasicMaterial({ color: 0xffb84a, transparent: true, opacity: 0.55 })
+    );
+    scene.add(tube);
+
+    const tubeCore = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 240, 0.012, 8, true),
+      new THREE.MeshBasicMaterial({ color: 0x55d4ff, transparent: true, opacity: 0.9 })
+    );
+    scene.add(tubeCore);
+
+    // flowing particles ON the infinity path
+    const N = 1600;
     const pos = new Float32Array(N * 3);
     const col = new Float32Array(N * 3);
-    const base = new Float32Array(N * 3);
+    const phase = new Float32Array(N);
     for (let i = 0; i < N; i++) {
-      const h = Math.random();
-      const rad = (1 - h) * (1.35 + Math.random() * 0.4);
-      const a = Math.random() * Math.PI * 2;
-      const x = Math.cos(a) * rad;
-      const z = Math.sin(a) * rad;
-      const y = h * 1.7 - 0.7;
-      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
-      base[i * 3] = x; base[i * 3 + 1] = y; base[i * 3 + 2] = z;
-      col[i * 3] = 0.9; col[i * 3 + 1] = 0.5 + h * 0.35; col[i * 3 + 2] = 0.15;
+      phase[i] = Math.random() * Math.PI * 2;
+      const warm = Math.random();
+      col[i * 3] = 0.7 + warm * 0.3;
+      col[i * 3 + 1] = 0.4 + warm * 0.45;
+      col[i * 3 + 2] = warm > 0.55 ? 0.85 : 0.18;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const cloud = new THREE.Points(geo, new THREE.PointsMaterial({
-      size: 0.03, vertexColors: true, transparent: true, opacity: 0.95, sizeAttenuation: true,
+    const flow = new THREE.Points(geo, new THREE.PointsMaterial({
+      size: 0.045, vertexColors: true, transparent: true, opacity: 0.95, sizeAttenuation: true,
     }));
-    scene.add(cloud);
+    scene.add(flow);
 
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.7, 0.012, 8, 100),
-      new THREE.MeshBasicMaterial({ color: 0x55d4ff, transparent: true, opacity: 0.8 })
+    // outer spark dust (sparse, not a mound)
+    const M = 500;
+    const dustPos = new Float32Array(M * 3);
+    const dustCol = new Float32Array(M * 3);
+    const dustBase = new Float32Array(M * 3);
+    for (let i = 0; i < M; i++) {
+      const u = Math.random() * Math.PI * 2;
+      const p = infinityPoint(u, 2.35 + Math.random() * 0.5);
+      dustBase[i * 3] = p.x;
+      dustBase[i * 3 + 1] = p.y * 0.85 + (Math.random() - 0.5) * 0.35;
+      dustBase[i * 3 + 2] = (Math.random() - 0.5) * 0.8;
+      dustPos[i * 3] = dustBase[i * 3];
+      dustPos[i * 3 + 1] = dustBase[i * 3 + 1];
+      dustPos[i * 3 + 2] = dustBase[i * 3 + 2];
+      dustCol[i * 3] = 1; dustCol[i * 3 + 1] = 0.75; dustCol[i * 3 + 2] = 0.35;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    dustGeo.setAttribute('color', new THREE.BufferAttribute(dustCol, 3));
+    const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+      size: 0.02, vertexColors: true, transparent: true, opacity: 0.55, sizeAttenuation: true,
+    }));
+    scene.add(dust);
+
+    // crossing node glow at center of ∞
+    const node = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffe08a })
     );
-    ring.rotation.x = Math.PI / 2.2;
-    ring.position.y = -0.15;
-    scene.add(ring);
+    scene.add(node);
 
-    const ring2 = new THREE.Mesh(
-      new THREE.TorusGeometry(1.15, 0.01, 8, 80),
-      new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.7 })
-    );
-    ring2.rotation.x = Math.PI / 2.5;
-    ring2.position.y = 0.35;
-    scene.add(ring2);
-
-    // floating chips
+    // chips traveling along infinity
     const chips = [];
-    const labels = ['SEAT', 'CLIMB', 'FALL', 'PAPER', 'npm'];
+    const labels = ['∞ LOOP', 'PAPER', 'SEAT', 'HOST', 'npm'];
     labels.forEach((text, i) => {
       const cv = document.createElement('canvas');
-      cv.width = 256; cv.height = 64;
+      cv.width = 280; cv.height = 64;
       const ctx = cv.getContext('2d');
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.fillRect(8, 10, 240, 44);
-      ctx.strokeStyle = '#ffb84a';
-      ctx.strokeRect(8, 10, 240, 44);
-      ctx.fillStyle = '#ffb84a';
-      ctx.font = 'bold 28px Consolas';
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(8, 10, 264, 44);
+      ctx.strokeStyle = i === 0 ? '#55d4ff' : '#ffb84a';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(8, 10, 264, 44);
+      ctx.fillStyle = i === 0 ? '#55d4ff' : '#ffb84a';
+      ctx.font = 'bold 26px Consolas';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, 128, 32);
+      ctx.fillText(text, 140, 32);
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({
         map: new THREE.CanvasTexture(cv), transparent: true, depthTest: false,
       }));
-      sp.scale.set(0.95, 0.24, 1);
+      sp.scale.set(1.05, 0.24, 1);
       scene.add(sp);
       chips.push({ sp, phase: (i / labels.length) * Math.PI * 2 });
     });
 
     const lines = [
-      ['npm start → YOUR SEAT', 'paper desk on pump.fun trench'],
-      ['REAL TERMINAL UP TOP', '3D seat field below'],
-      ['NO KEYS IN THE REPO', 'learn the loop in paper first'],
+      ['∞ SAME DESK. SAME LOOP.', 'seat → climb → fall → seat'],
+      ['REAL TERMINAL UP TOP', 'infinity field below'],
+      ['NO KEYS IN THE REPO', 'paper loop until you wire live'],
       ['SELF-HOSTED OPERATOR SEAT', 'github.com/alexvxonchain/seatkit'],
     ];
+
+    document.getElementById('badge').textContent = '3D ∞ LOOP · LIVE';
 
     window.__RADIX__ = { t: 0, ready: false, DUR };
     let start = performance.now();
@@ -160,27 +213,41 @@
 
     function renderAt(t) {
       window.__RADIX__.t = t;
-      cloud.rotation.y = t * 0.35;
-      ring.rotation.z = -t * 0.4;
-      ring2.rotation.z = t * 0.55;
 
+      // flow along ∞
       const arr = geo.attributes.position.array;
       for (let i = 0; i < N; i++) {
-        const s = 1 + 0.035 * Math.sin(t * 2.2 + i * 0.01);
-        arr[i * 3] = base[i * 3] * s;
-        arr[i * 3 + 1] = base[i * 3 + 1] + Math.sin(t * 1.6 + i * 0.002) * 0.025;
-        arr[i * 3 + 2] = base[i * 3 + 2] * s;
+        const u = phase[i] + t * (1.15 + (i % 5) * 0.04);
+        const p = infinityPoint(u);
+        const wobble = 0.04 * Math.sin(t * 3 + i);
+        arr[i * 3] = p.x + wobble * Math.cos(u);
+        arr[i * 3 + 1] = p.y * 0.85 + wobble * 0.5;
+        arr[i * 3 + 2] = Math.sin(u * 2 + t) * 0.14;
       }
       geo.attributes.position.needsUpdate = true;
 
-      chips.forEach(({ sp, phase }) => {
-        const a = phase + t * 0.7;
-        sp.position.set(Math.cos(a) * 2.0, Math.sin(a * 1.4) * 0.35 + 0.15, Math.sin(a) * 2.0);
+      const darr = dustGeo.attributes.position.array;
+      for (let i = 0; i < M; i++) {
+        darr[i * 3] = dustBase[i * 3] + Math.sin(t * 0.8 + i) * 0.03;
+        darr[i * 3 + 1] = dustBase[i * 3 + 1] + Math.cos(t * 1.1 + i * 0.2) * 0.04;
+        darr[i * 3 + 2] = dustBase[i * 3 + 2];
+      }
+      dustGeo.attributes.position.needsUpdate = true;
+
+      tube.rotation.z = Math.sin(t * 0.25) * 0.08;
+      tubeCore.rotation.z = tube.rotation.z;
+      node.scale.setScalar(1 + 0.25 * Math.sin(t * 4));
+
+      chips.forEach(({ sp, phase: ph }) => {
+        const u = ph + t * 0.55;
+        const p = infinityPoint(u, 1.85);
+        sp.position.set(p.x, p.y * 0.85 + 0.18, 0.25);
       });
 
-      camera.position.x = Math.sin(t * 0.3) * 0.55;
-      camera.position.y = 1.05 + Math.sin(t * 0.25) * 0.12;
-      camera.lookAt(0, 0.1, 0);
+      camera.position.x = Math.sin(t * 0.22) * 0.45;
+      camera.position.y = 0.2 + Math.sin(t * 0.3) * 0.12;
+      camera.position.z = 5.0 + Math.cos(t * 0.18) * 0.25;
+      camera.lookAt(0, 0, 0);
 
       const li = Math.min(lines.length - 1, Math.floor(t / (DUR / lines.length)));
       document.getElementById('line').textContent = lines[li][0];
@@ -207,7 +274,6 @@
       requestAnimationFrame(frame);
     }
 
-    // wait iframe + webgl
     requestAnimationFrame(() => {
       window.__RADIX__.ready = true;
       start = performance.now();
