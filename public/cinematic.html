@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SEATKIT · cinematic</title>
+  <style>
+    html, body { margin:0; width:1080px; height:1350px; overflow:hidden; background:#060504; color:#ffb84a; font-family:"Segoe UI",Consolas,monospace; }
+    #c { position:absolute; inset:0; width:1080px; height:1350px; display:block; }
+    #hud { position:absolute; inset:0; pointer-events:none; z-index:2; }
+    .top { position:absolute; top:18px; left:22px; right:22px; display:flex; justify-content:space-between; align-items:flex-start; }
+    .brand { font-size:26px; font-weight:800; color:#fff7e8; letter-spacing:.5px; }
+    .brand span { color:#ffb84a; }
+    .sub { margin-top:4px; font-size:12px; opacity:.75; color:#c9a06a; }
+    .stats { display:flex; gap:12px; align-items:center; font-size:12px; color:#d9a45a; }
+    .stats b { color:#ffe08a; }
+    .live { background:#ffb84a; color:#1a0c00; padding:3px 8px; font-weight:700; font-size:11px; }
+    .tape { position:absolute; top:78px; left:22px; right:22px; height:28px; border:1px solid rgba(255,184,74,.35); background:rgba(10,7,3,.65); overflow:hidden; font-size:12px; color:#e0b36a; display:flex; align-items:center; }
+    .tape-inner { white-space:nowrap; padding-left:12px; }
+    .side { position:absolute; width:210px; border:1px solid rgba(255,184,74,.4); background:rgba(8,6,3,.55); padding:8px 10px; }
+    .side h4 { margin:0 0 6px; font-size:11px; letter-spacing:1px; color:#ffe08a; }
+    .side p { margin:0 0 6px; font-size:10px; opacity:.7; color:#c9a06a; }
+    .L1{top:122px;left:22px;height:148px} .L2{top:282px;left:22px;height:148px} .L3{top:442px;left:22px;height:148px}
+    .R1{top:122px;right:22px;height:148px} .R2{top:282px;right:22px;height:148px} .R3{top:442px;right:22px;height:148px}
+    canvas.mini { width:100%; height:78px; display:block; }
+    .hero { position:absolute; top:285px; left:0; right:0; text-align:center; z-index:3; }
+    .hero h1 { margin:0; font-size:84px; font-weight:800; color:#ffc45c; text-shadow:0 0 28px rgba(255,180,60,.45); letter-spacing:2px; }
+    .hero .line { margin-top:6px; font-size:15px; color:#f0d090; }
+    .hero .line2 { margin-top:4px; font-size:12px; opacity:.7; color:#c9a06a; }
+    .pip {
+      position:absolute; left:50%; bottom:200px; transform:translateX(-50%);
+      width:520px; height:300px; border:1px solid rgba(255,184,74,.55);
+      background:rgba(6,5,4,.72); overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.55);
+    }
+    .pip .bar { height:28px; border-bottom:1px solid rgba(255,184,74,.35); display:flex; align-items:center; gap:8px; padding:0 10px; font-size:11px; color:#c9a06a; }
+    .pip .dot { width:8px; height:8px; border-radius:50%; background:#ffb84a; }
+    .pip iframe, .pip .fake { width:100%; height:calc(100% - 28px); border:0; }
+    .fake { padding:12px; font-size:12px; color:#e8c48a; }
+    .fake .k { font-size:28px; font-weight:800; color:#ffb84a; margin:8px 0; }
+    .cards { position:absolute; left:22px; right:22px; bottom:58px; display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+    .card { border:1px solid rgba(255,184,74,.4); background:rgba(8,6,3,.6); padding:10px 8px 8px; min-height:110px; }
+    .card .k { font-size:11px; opacity:.75; color:#c9a06a; }
+    .card .v { margin-top:4px; font-size:20px; font-weight:700; color:#ffe08a; }
+    .card .d { margin-top:2px; font-size:10px; opacity:.65; }
+    .card canvas { width:100%; height:34px; margin-top:8px; display:block; }
+    .foot { position:absolute; left:22px; right:22px; bottom:16px; display:flex; justify-content:space-between; font-size:11px; opacity:.7; color:#c9a06a; }
+  </style>
+  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.170.0/build/three.module.js" } }</script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="hud">
+    <div class="top">
+      <div>
+        <div class="brand">SEATKIT <span>/ LOCAL DESK</span></div>
+        <div class="sub">npm start · PAPER first · pump.fun trench · @Alexvx_nft</div>
+      </div>
+      <div class="stats">
+        <div>MODE <b>PAPER</b></div>
+        <div>KEYS <b>NONE</b></div>
+        <div>PORT <b>3847</b></div>
+        <div class="live">HOSTED</div>
+      </div>
+    </div>
+    <div class="tape"><div class="tape-inner" id="tape">npm install · npm start · localhost:3847 · SEAT · CLIMB · FALL · WALLETS · LAUNCH · TRADE · LOGS · no keys in repo · </div></div>
+
+    <div class="side L1"><h4>INSTALL</h4><p>one command seat</p><canvas class="mini" id="c1"></canvas></div>
+    <div class="side L2"><h4>SEAT</h4><p>who holds the hill</p><canvas class="mini" id="c2"></canvas></div>
+    <div class="side L3"><h4>PAPER</h4><p>no signatures yet</p><canvas class="mini" id="c3"></canvas></div>
+    <div class="side R1"><h4>CLIMB</h4><p>names under king</p><canvas class="mini" id="c4"></canvas></div>
+    <div class="side R2"><h4>LANES</h4><p>wallet cluster map</p><canvas class="mini" id="c5"></canvas></div>
+    <div class="side R3"><h4>FALL</h4><p>flip before CT</p><canvas class="mini" id="c6"></canvas></div>
+
+    <div class="hero">
+      <h1 id="heroTitle">SEATKIT</h1>
+      <div class="line" id="heroLine">OPEN THE SEAT ON YOUR MACHINE</div>
+      <div class="line2" id="heroLine2">pump.fun venue · local host</div>
+    </div>
+
+    <div class="pip">
+      <div class="bar"><span class="dot"></span> localhost:3847 · SEATKIT paper desk</div>
+      <div class="fake">
+        <div>CURRENT SEAT · pump.fun</div>
+        <div class="k" id="pipKing">RIDGE</div>
+        <div id="pipMeta">34s on seat · curve 74% · PAPER</div>
+        <div style="margin-top:14px;opacity:.8" id="pipClimb">CLIMB · LANTERN 55% · SPUD 41% · CINDER 28%</div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="k">npm</div><div class="v">START</div><div class="d">boot desk</div><canvas id="s1"></canvas></div>
+      <div class="card"><div class="k">SEAT</div><div class="v" id="v1">KING</div><div class="d">live sim</div><canvas id="s2"></canvas></div>
+      <div class="card"><div class="k">CLIMB</div><div class="v" id="v2">+3</div><div class="d">under fill</div><canvas id="s3"></canvas></div>
+      <div class="card"><div class="k">FALL</div><div class="v" id="v3">WATCH</div><div class="d">flip risk</div><canvas id="s4"></canvas></div>
+      <div class="card"><div class="k">KEYS</div><div class="v">0</div><div class="d">paper safe</div><canvas id="s5"></canvas></div>
+    </div>
+    <div class="foot">
+      <div>github.com/alexvxonchain/seatkit</div>
+      <div>self-hosted seat · not another browser tab</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    const DUR = 18;
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(1);
+    renderer.setSize(1080, 1350, false);
+    renderer.setClearColor(0x060504, 1);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1080/1350, 0.1, 100);
+    camera.position.set(0, 1.6, 7.2);
+
+    const grid = new THREE.GridHelper(18, 28, 0x3a2810, 0x1a1208);
+    grid.position.y = -1.7;
+    scene.add(grid);
+
+    // seat / throne particle mound + backrest
+    const N = 4600;
+    const pos = new Float32Array(N*3), col = new Float32Array(N*3), base = new Float32Array(N*3);
+    for (let i=0;i<N;i++){
+      const h = Math.random();
+      const rad = (1-h)*(1.6+Math.random()*0.5);
+      const a = Math.random()*Math.PI*2;
+      let x = Math.cos(a)*rad, z = Math.sin(a)*rad, y = h*2.4-1.1;
+      if (i%7===0){ // backrest plume
+        x *= 0.35; z = -1.1 - Math.random()*0.4; y = Math.random()*2.2-0.4;
+      }
+      pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z;
+      base[i*3]=x; base[i*3+1]=y; base[i*3+2]=z;
+      col[i*3]=0.85+h*0.15; col[i*3+1]=0.45+h*0.35; col[i*3+2]=0.15;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+    const seat = new THREE.Points(geo, new THREE.PointsMaterial({ size:0.036, vertexColors:true, transparent:true, opacity:0.95, sizeAttenuation:true }));
+    scene.add(seat);
+
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.35,0.014,8,128), new THREE.MeshBasicMaterial({ color:0x55d4ff, transparent:true, opacity:0.75 }));
+    ring.rotation.x = Math.PI/2.35; ring.position.y=-0.35; scene.add(ring);
+    const crown = new THREE.Mesh(new THREE.TorusGeometry(0.42,0.02,10,64), new THREE.MeshBasicMaterial({ color:0xffe08a }));
+    crown.rotation.x = Math.PI/2; crown.position.y=1.45; scene.add(crown);
+
+    const LABELS=[{t:'npm start',c:'#ffb84a'},{t:'SEAT',c:'#ffe08a'},{t:'CLIMB',c:'#7dffb0'},{t:'FALL',c:'#ff6b8a'},{t:'PAPER',c:'#55d4ff'},{t:'PUMP.FUN',c:'#ffb84a'},{t:'NO KEYS',c:'#c9a06a'},{t:':3847',c:'#55d4ff'}];
+    const sprites=[];
+    function makeLabel(text,color){
+      const cv=document.createElement('canvas'); cv.width=512; cv.height=128;
+      const ctx=cv.getContext('2d');
+      ctx.fillStyle='rgba(0,0,0,.4)'; ctx.fillRect(16,28,480,72);
+      ctx.strokeStyle=color; ctx.lineWidth=3; ctx.strokeRect(16,28,480,72);
+      ctx.fillStyle=color; ctx.font='bold 40px Consolas,monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(text,256,64);
+      const sp=new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(cv), transparent:true, depthTest:false }));
+      sp.scale.set(1.55,0.38,1); scene.add(sp); return sp;
+    }
+    LABELS.forEach((L,i)=>sprites.push({sp:makeLabel(L.t,L.c), phase:(i/LABELS.length)*Math.PI*2}));
+
+    const names=['RIDGE','LANTERN','SPUD','CINDER','QUARRY','FOLD','BRIDGE','VIEW'];
+    function bars(id,t,color,n=20){
+      const el=document.getElementById(id); const w=el.width=el.clientWidth*2, h=el.height=el.clientHeight*2;
+      const ctx=el.getContext('2d'); ctx.clearRect(0,0,w,h); const bw=w/n;
+      for(let i=0;i<n;i++){ const v=.2+.8*Math.abs(Math.sin(t*1.7+i*.45+id.length)); ctx.fillStyle=color; ctx.globalAlpha=.5+v*.5; ctx.fillRect(i*bw+2,h-v*(h-8),bw-4,v*(h-8)); }
+      ctx.globalAlpha=1;
+    }
+    function spark(id,t,seed){
+      const el=document.getElementById(id); const w=el.width=el.clientWidth*2, h=el.height=el.clientHeight*2;
+      const ctx=el.getContext('2d'); ctx.clearRect(0,0,w,h); const n=14,bw=w/n;
+      for(let i=0;i<n;i++){ const v=.2+.8*Math.abs(Math.sin(t*2.2+i*.5+seed)); ctx.fillStyle='#ffb84a'; ctx.globalAlpha=.45+v*.55; ctx.fillRect(i*bw+2,h-v*h,bw-3,v*h);} ctx.globalAlpha=1;
+    }
+    function heat(id,t){
+      const el=document.getElementById(id); const w=el.width=el.clientWidth*2, h=el.height=el.clientHeight*2;
+      const ctx=el.getContext('2d'); ctx.clearRect(0,0,w,h);
+      for(let y=0;y<4;y++) for(let x=0;x<8;x++){ const on=Math.sin(t*2+x*.7+y)> -.2; ctx.fillStyle=on?'#ffb84a':'#2a1a08'; ctx.fillRect(x*(w/8)+3,y*(h/4)+3,w/8-6,h/4-6); }
+    }
+    function line(id,t){
+      const el=document.getElementById(id); const w=el.width=el.clientWidth*2, h=el.height=el.clientHeight*2;
+      const ctx=el.getContext('2d'); ctx.clearRect(0,0,w,h); ctx.strokeStyle='#ff6b8a'; ctx.lineWidth=3; ctx.beginPath();
+      for(let x=0;x<=w;x+=5){ const y=h*.3+Math.max(0,x/w-.4)*h*.55+Math.sin(x*.05+t*2)*5; x?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke();
+    }
+
+    const phases=[
+      [0,4.5,'SEATKIT','OPEN THE SEAT ON YOUR MACHINE','npm start · localhost:3847'],
+      [4.5,9,'PAPER','NO KEYS. LEARN THE LOOP FIRST','pump.fun venue · local host'],
+      [9,13.5,'SEAT','WATCH THE HILL WHILE IT STILL SITS','CLIMB under · FALL before CT'],
+      [13.5,18,'HOST','SELF-HOSTED. NOT ANOTHER TAB','github.com/alexvxonchain/seatkit'],
+    ];
+
+    const heroTitle=document.getElementById('heroTitle');
+    const heroLine=document.getElementById('heroLine');
+    const heroLine2=document.getElementById('heroLine2');
+    const tape=document.getElementById('tape');
+    const pipKing=document.getElementById('pipKing');
+    const pipMeta=document.getElementById('pipMeta');
+    const pipClimb=document.getElementById('pipClimb');
+    const v1=document.getElementById('v1');
+    const v2=document.getElementById('v2');
+    const v3=document.getElementById('v3');
+
+    window.__RADIX__={t:0,ready:false,DUR};
+    let start=performance.now(), recording=false;
+
+    function renderAt(t){
+      window.__RADIX__.t=t;
+      seat.rotation.y=t*.25;
+      crown.rotation.z=t*1.2;
+      crown.position.y=1.45+Math.sin(t*2)*.05;
+      ring.rotation.z=-t*.32;
+      const arr=geo.attributes.position.array;
+      for(let i=0;i<N;i++){ const s=1+.03*Math.sin(t*2+i*.01); arr[i*3]=base[i*3]*s; arr[i*3+1]=base[i*3+1]+Math.sin(t*1.4+i*.002)*.02; arr[i*3+2]=base[i*3+2]*s; }
+      geo.attributes.position.needsUpdate=true;
+      sprites.forEach(({sp,phase})=>{
+        const a=phase+t*.48, rad=2.75;
+        sp.position.set(Math.cos(a)*rad, Math.sin(a*1.2)*.7, Math.sin(a)*rad);
+        sp.material.opacity=.7+.3*Math.sin(t*2+phase);
+      });
+      camera.position.x=Math.sin(t*.24)*2.1;
+      camera.position.y=1.5+Math.sin(t*.2)*.35;
+      camera.position.z=6.5+Math.cos(t*.16)*.45;
+      camera.lookAt(0,.35,0);
+
+      for(const [a,b,title,line,line2] of phases){ if(t>=a&&t<b){ heroTitle.textContent=title; heroLine.textContent=line; heroLine2.textContent=line2; } }
+      tape.style.transform=`translateX(${-((t*52)%560)}px)`;
+      bars('c1',t,'#ffb84a'); bars('c2',t+1,'#ffe08a'); bars('c3',t+2,'#55d4ff'); bars('c4',t,'#7dffb0'); heat('c5',t); line('c6',t);
+      for(let i=1;i<=5;i++) spark('s'+i,t,i);
+
+      const king=names[Math.floor(t/3)%names.length];
+      const fill=62+Math.floor((t*4)%29);
+      pipKing.textContent=king;
+      pipMeta.textContent=`${8+Math.floor(t*2)%40}s on seat · curve ${fill}% · PAPER`;
+      pipClimb.textContent=`CLIMB · ${names[(names.indexOf(king)+1)%names.length]} ${fill-12}% · ${names[(names.indexOf(king)+2)%names.length]} ${fill-24}% · ${names[(names.indexOf(king)+3)%names.length]} ${fill-33}%`;
+      v1.textContent=king; v2.textContent='+'+(2+Math.floor(t)%3); v3.textContent=fill>84?'FLIP':'WATCH';
+
+      // pip float
+      document.querySelector('.pip').style.transform=`translateX(-50%) translateY(${Math.sin(t*1.1)*6}px)`;
+
+      renderer.render(scene,camera);
+    }
+
+    window.__setTime=(tt)=>{ recording=true; renderAt(tt); };
+    window.__RADIX_RESTART__=()=>{ recording=false; start=performance.now(); renderAt(0); };
+    function frame(now){ if(recording) return; renderAt(Math.min(DUR,(now-start)/1000)); requestAnimationFrame(frame); }
+    requestAnimationFrame(()=>{ window.__RADIX__.ready=true; start=performance.now(); renderAt(0); requestAnimationFrame(frame); });
+  </script>
+</body>
+</html>
